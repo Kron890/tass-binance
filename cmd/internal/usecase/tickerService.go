@@ -9,20 +9,23 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"main.go/cmd/internal/repository"
 )
 
 // поиск по url
-func (db *DataBase) GetFetch(c echo.Context) error {
-
+func GetFetch(c echo.Context) error {
 	NameTicker := c.Param("ticker")
+
 	// проверка данных в бд
-	var count int64
-	if err := db.DB.Model(tickerDB{}).Where("ticker=?", NameTicker).Count(&count).Error; err != nil {
+
+	exists, err := repository.CheckTicker(NameTicker)
+	if err != nil {
 		return ErrorResponse(c, http.StatusInternalServerError, "Database error")
 	}
-	if count == 0 {
+	if !exists {
 		return ErrorResponse(c, http.StatusNotFound, "Tiker not found")
 	}
+
 	// time весь переход надо сделать в отдельном файле!!
 	dateFromParam := c.Param("date_from")
 	loc, _ := time.LoadLocation("Europe/Moscow") // Загружаем московский часовой пояс

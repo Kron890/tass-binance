@@ -9,11 +9,8 @@ import (
 func main() {
 	e := echo.New()
 
-	var db DataBase
-	db.connectBd()
-	go db.RegularUpd()
-	e.GET("/fetch/:ticker/:date_from/:date_to", db.GetFetch)
-	e.POST("/add_ticker", db.PostAddTicker)
+	e.GET("/fetch/:ticker/:date_from/:date_to", GetFetch)
+	e.POST("/add_ticker", PostAddTicker)
 
 	if err := e.Start("localhost:8080"); err != nil {
 		log.Fatal(err)
