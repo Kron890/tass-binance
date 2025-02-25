@@ -1,0 +1,9 @@
+/* type Status struct {
+	Message string `json:"message"`
+} */ //запихнуть к handler
+
+/* func ErrorResponse(c echo.Context, statuscode int, message string) error {
+	return c.JSON(statuscode, Status{
+		Message: message,
+	})
+} */
