@@ -21,16 +21,14 @@ func NewTickerService(db *gorm.DB) TickerRepository {
 }
 
 func (r *tickerService) CheckTicker(name string) (bool, error) {
-	var NameTicker models.TickerModel
 	var count int64
-	err := r.db.Model(tickerDB{}).Where("ticker=?", NameTicker).Count(&count).Error
+	err := r.db.Model(&models.TickerModel{}).Where("ticker=?", name).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
 	return count > 0, nil
 }
 
-//переделать GetTicker для проверки count
 //сделать функцию для data
 
 func (r *tickerService) SaveTicker(ticker *models.TickerModel) error {

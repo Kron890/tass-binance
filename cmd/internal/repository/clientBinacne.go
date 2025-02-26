@@ -1,6 +1,5 @@
 package repository
 
-/*
 import "github.com/adshao/go-binance/v2"
 
 func BinacnClientRegular() *binance.ListPricesService {
@@ -12,4 +11,3 @@ func BinanceClientPost() *binance.ListPricesService {
 	client := binance.NewClient("", "")
 	return client.NewListPricesService()
 }
-*/

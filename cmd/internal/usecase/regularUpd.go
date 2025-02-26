@@ -6,10 +6,12 @@ import (
 	"log"
 	"strconv"
 	"time"
+
+	"main.go/cmd/internal/repository"
 )
 
 func (db *DataBase) RegularUpd() {
-	tickerService := BinacnClientRegular()
+	tickerService := repository.BinacnClientRegular()
 	for {
 		var tickers []tickerDB
 

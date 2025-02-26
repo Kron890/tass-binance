@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,42 +17,32 @@ func GetFetch(c echo.Context) error {
 
 	// проверка данных в бд
 
-	exists, err := repository.CheckTicker(NameTicker)
+	exists, err := CheckTicker(NameTicker) // ?
 	if err != nil {
 		return ErrorResponse(c, http.StatusInternalServerError, "Database error")
 	}
 	if !exists {
-		return ErrorResponse(c, http.StatusNotFound, "Tiker not found")
+		return ErrorResponse(c, http.StatusNotFound, "Ticker not found")
 	}
 
 	// time весь переход надо сделать в отдельном файле!!
-	dateFromParam := c.Param("date_from")
-	loc, _ := time.LoadLocation("Europe/Moscow") // Загружаем московский часовой пояс
-	dateFromTime, err := time.ParseInLocation("02.01.2006 15:04:05", dateFromParam, loc)
+	startUnix, endUnix, err := transition(c, "date_from", "date_to")
 	if err != nil {
-		return ErrorResponse(c, http.StatusBadRequest, "Invalid data provided(date_from)")
+		return ErrorResponse(c, http.StatusBadRequest, err)
 	}
-	dateToParam := c.Param("date_to")
-	dateToTime, err := time.ParseInLocation("02.01.2006 15:04:05", dateToParam, loc)
-	if err != nil {
-		return ErrorResponse(c, http.StatusBadRequest, "Invalid data provided(date_to)")
-	}
-	//UNIX
-	startUnix := dateFromTime.Unix()
-	endUnix := dateToTime.Unix()
-
 	// fmt.Println(startUnix)
 	// fmt.Println(endUnix)
 
 	//Смотрим в бд
+	////////////////////////// сделать все в репозитории
 	flagDataFrom := true
-	var startPrice tickerHistory
+	var startPrice tickerHistory // не должно быть
 	if err := db.DB.Where("ticker=? AND timestamp = ?", NameTicker, startUnix).First(&startPrice).Error; err != nil {
 		log.Println("нет даты в бд(data_from)")
 		flagDataFrom = false
 	}
 	flagDateTo := true
-	var endPrice tickerHistory
+	var endPrice tickerHistory // не должно быть
 	if err := db.DB.Where("ticker = ? AND timestamp = ?", NameTicker, endUnix).First(&endPrice).Error; err != nil {
 		log.Println("нет даты в бд(data_to)")
 		flagDateTo = false
@@ -66,11 +55,10 @@ func GetFetch(c echo.Context) error {
 			Difference: "0%",
 		})
 	}
-
+	/////////////////////////////////
 	//выбить в отдельную функцию
 
-	percDiff := ((endPrice.Price - startPrice.Price) / startPrice.Price) * 100
-	percDiffStr := fmt.Sprintf("%.2f%%", percDiff)
+	percDiffStr := calculatorDiff(endPrice.Price, startPrice.Price)
 	//
 	return c.JSON(http.StatusOK, priceDiff{
 		Name:       NameTicker,
@@ -81,7 +69,7 @@ func GetFetch(c echo.Context) error {
 }
 
 // добавления тикера
-func (db *DataBase) PostAddTicker(c echo.Context) error {
+func PostAddTicker(c echo.Context) error {
 	var ticker tickerDB
 	//вытаскиваем из запорса
 	if err := c.Bind(&ticker); err != nil {
@@ -98,7 +86,7 @@ func (db *DataBase) PostAddTicker(c echo.Context) error {
 	}
 
 	// Вытаскиваем из бинанса данные
-	service := BinanceClientPost()
+	service := repository.BinanceClientPost()
 	Resp, err := service.Symbol(ticker.Ticker).Do(context.Background())
 	if err != nil {
 		return ErrorResponse(c, http.StatusBadRequest, "Error, 400")
@@ -110,7 +98,7 @@ func (db *DataBase) PostAddTicker(c echo.Context) error {
 
 	//добавления данных
 
-	//оставить
+	//??
 	NewTicker := tickerDB{
 		Ticker: ticker.Ticker,
 		Price:  price,
@@ -120,7 +108,7 @@ func (db *DataBase) PostAddTicker(c echo.Context) error {
 		return ErrorResponse(c, http.StatusInternalServerError, "Error 500.\nError when adding")
 	}
 
-	//оставить
+	//??
 	NewTickerHistory := tickerHistory{
 		Ticker:    ticker.Ticker,
 		Price:     price,
