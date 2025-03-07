@@ -26,5 +26,12 @@ services:
     depends_on:
       - postgres
 
+  app:  # Это приложение, которое использует DATABASE_URL
+    build: .
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/mydatabase  # Строка подключения
+    depends_on:
+      - postgres
+
 volumes:
-  postgres_data: 
+  postgres_data:
