@@ -1,7 +1,9 @@
 package database
 
 import (
+	"log"
 	"os"
+	"tass-binance/internal/module/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,6 +21,9 @@ func NewDbConnection() (*DataBase, error) {
 	connect, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
+	}
+	if err := connect.AutoMigrate(&models.TickerDb{}, &models.TikcerHistory{}); err != nil {
+		log.Fatalf("Migration error: %v", err)
 	}
 	return &DataBase{DB: connect}, nil
 }
