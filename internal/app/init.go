@@ -19,16 +19,22 @@ func InitApp(server *Server) error {
 	repo := pstgrs.NewRepo(dbConnect)
 
 	// Инициализация клиента для взаимодействия с внешним API
-	extranalAPI := extrenal_api.NewApi()
+	extrenalAPI := extrenal_api.NewApi()
+
+	extrenalRegularUpdAPI := extrenal_api.NewApi()
 
 	// Создание слоя бизнес-логики (usecase) и передача в него зависимостей
-	tickerUseCase := usecase.NewUseCase(repo, extranalAPI)
+	tickerUseCase := usecase.NewUseCase(repo, extrenalAPI)
+
+	tickerRegularUseCase := usecase.NewUseCase(repo, extrenalRegularUpdAPI)
 
 	// Инициализация обработчиков HTTP-запросов (deliv) и передача в них usecase
 	handler := deliv.NewHandler(tickerUseCase)
+	updateHandler := deliv.NewHandler(tickerRegularUseCase)
 
 	// Регистрация маршрутов в сервере
 	deliv.MapRoutes(server.echo, *handler)
+	deliv.StartUpd(server.echo, *updateHandler)
 
 	return nil
 }

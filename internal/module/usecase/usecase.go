@@ -38,3 +38,22 @@ func (u *UseCase) ProcessTicker(ticker string) error {
 	return nil
 
 }
+
+func (u *UseCase) TickerUpdateProcess() error {
+
+	tickers, err := u.dbRepo.GetTicker()
+	if err != nil {
+		return err
+	}
+
+	tickersBinance, err := u.externalApiRepo.GetRegularPrice(tickers)
+	if err != nil {
+		return err
+	}
+
+	err = u.dbRepo.UpdateTickerDb(tickersBinance)
+	if err != nil {
+		return err
+	}
+	return nil
+}

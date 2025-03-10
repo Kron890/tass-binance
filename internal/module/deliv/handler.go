@@ -33,3 +33,11 @@ func (h *Handler) AddTicker(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, Message{Message: "ticker added successfully"})
 }
+
+func (h *Handler) UpdTicker() error {
+	err := h.us.TickerUpdateProcess()
+	if err != nil {
+		return fmt.Errorf("error: Invalid request %s", err)
+	}
+	return nil
+}
