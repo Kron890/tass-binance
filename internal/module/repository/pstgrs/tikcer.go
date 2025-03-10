@@ -48,6 +48,13 @@ func BindTicker(c echo.Context) (string, error) {
 	return ticker.Ticker, nil
 }
 
+func (r *TickerRepository) GetHistoryTikcer(ticker string, dateFrom int64, dateTo int64) (float64, float64, error) {
+	// преобразуем время - отдельная функция ??
+	// найти если есть данные в бд
+	//вернуть
+	return 0, 0, nil
+}
+
 func (r *TickerRepository) GetTicker() ([]string, error) {
 	var tickers []models.TickerDb
 	var result []string

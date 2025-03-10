@@ -39,6 +39,18 @@ func (u *UseCase) ProcessTicker(ticker string) error {
 
 }
 
+func (u *UseCase) ProcessTickerDiff(ticker string, time_from string, time_do string) (float64, float64, error) {
+	// преобразуем время - отдельная функция
+
+	//ищем данные по дате - отдельная функция (в бд)
+
+	//высчитываем diff -отдельная функция
+
+	//возварщаем
+
+	return 0, 0, nil
+}
+
 func (u *UseCase) TickerUpdateProcess() error {
 
 	tickers, err := u.dbRepo.GetTicker()

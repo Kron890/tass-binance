@@ -34,6 +34,14 @@ func (h *Handler) AddTicker(c echo.Context) error {
 	return c.JSON(http.StatusOK, Message{Message: "ticker added successfully"})
 }
 
+func (h *Handler) GetTickerDiff(c echo.Context) error {
+	// взять данные из url
+	// отдать данные в процесс - получить разницу и ошибку
+	// проверить ошибку
+	//вывести данные, построим структуру
+	return nil
+}
+
 func (h *Handler) UpdTicker() error {
 	err := h.us.TickerUpdateProcess()
 	if err != nil {
