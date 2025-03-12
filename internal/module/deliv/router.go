@@ -1,23 +1,25 @@
 package deliv
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
 func MapRoutes(e *echo.Echo, h Handler) {
-	e.POST("/add_ticker", h.AddTicker)
-	//добавить просморт тикеров в бд
-	// e.GET("/fetch/:ticker",)
 
+	e.POST("/add_ticker", h.AddTicker)
+	e.GET("/fetch/:ticker/:date_from/:date_to", h.TickerDiff)
 }
 
-func StartUpd(c *echo.Echo, h Handler) {
-	for {
-		h.UpdTicker()
-		fmt.Println("Upd")
-		time.Sleep(60 * time.Second)
-	}
+func StartUpd(e *echo.Echo, h Handler) {
+	// Пример запуска обновлений
+	go func() {
+		for {
+			h.UpdTicker()
+			log.Print("upd")
+			time.Sleep(1 * time.Minute)
+		}
+	}()
 }

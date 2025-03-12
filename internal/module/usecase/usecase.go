@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"tass-binance/internal/module"
+	"tass-binance/internal/module/usecase/helpers"
 )
 
 type UseCase struct {
@@ -39,16 +40,19 @@ func (u *UseCase) ProcessTicker(ticker string) error {
 
 }
 
-func (u *UseCase) ProcessTickerDiff(ticker string, time_from string, time_do string) (float64, float64, error) {
-	// преобразуем время - отдельная функция
+// GetTickerDiff
+func (u *UseCase) ProcessTickerDiff(ticker string, dateFrom string, dateTo string) (float64, float64, error) {
 
-	//ищем данные по дате - отдельная функция (в бд)
+	timeFrom, timeTo, err := helpers.ConvertTime(dateFrom, dateTo)
+	if err != nil {
+		return 0, 0, err
+	}
 
-	//высчитываем diff -отдельная функция
+	startPrice, endPrice, _ := u.dbRepo.GetHistoryTikcer(ticker, timeFrom, timeTo)
 
-	//возварщаем
+	percDiff := helpers.DiffCalculator(endPrice, startPrice)
 
-	return 0, 0, nil
+	return percDiff, endPrice, nil
 }
 
 func (u *UseCase) TickerUpdateProcess() error {

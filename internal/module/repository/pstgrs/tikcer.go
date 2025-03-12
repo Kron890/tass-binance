@@ -1,6 +1,7 @@
 package pstgrs
 
 import (
+	"fmt"
 	"log"
 	"tass-binance/infrastructure/database"
 	"tass-binance/internal/module/models"
@@ -16,6 +17,7 @@ func NewRepo(db *database.DataBase) *TickerRepository {
 	return &TickerRepository{db: db}
 }
 
+// Смотрит есть ли данные в бд (handler AddTicker)
 func (r *TickerRepository) CheckTicker(ticker string) (bool, error) {
 	var count int64
 	if err := r.db.DB.Model(&models.TickerDb{}).Where("ticker=?", ticker).Count(&count).Error; err != nil {
@@ -27,6 +29,7 @@ func (r *TickerRepository) CheckTicker(ticker string) (bool, error) {
 	return true, nil
 }
 
+// Добавляет данные в бд (handler AddTicker)
 func (r *TickerRepository) AddTickerDataBase(ticker string, price float64) error {
 	newTicker := models.TickerDb{
 		Ticker: ticker,
@@ -40,21 +43,22 @@ func (r *TickerRepository) AddTickerDataBase(ticker string, price float64) error
 
 }
 
-func BindTicker(c echo.Context) (string, error) {
-	var ticker models.TickerDb
-	if err := c.Bind(&ticker); err != nil {
-		return "", err
-	}
-	return ticker.Ticker, nil
-}
-
+// tickerDiff
 func (r *TickerRepository) GetHistoryTikcer(ticker string, dateFrom int64, dateTo int64) (float64, float64, error) {
-	// преобразуем время - отдельная функция ??
 	// найти если есть данные в бд
-	//вернуть
-	return 0, 0, nil
+	var startPrice models.TikcerHistory
+	if err := r.db.DB.Where("ticker=? AND timestamp = ?", ticker, dateFrom).First(&startPrice).Error; err != nil {
+		log.Println("нет даты в бд(data_from)")
+	}
+	var endPrice models.TikcerHistory
+	if err := r.db.DB.Where("ticker = ? AND timestamp = ?", ticker, dateTo).First(&endPrice).Error; err != nil {
+		log.Println("нет даты в бд(data_to)")
+	}
+	// вернуть
+	return startPrice.Price, endPrice.Price, nil
 }
 
+// Получаем все тикеры в бд (UpdTicker)
 func (r *TickerRepository) GetTicker() ([]string, error) {
 	var tickers []models.TickerDb
 	var result []string
@@ -67,6 +71,7 @@ func (r *TickerRepository) GetTicker() ([]string, error) {
 	return result, nil
 }
 
+// Обновляем тикеры полученные из бинанса в бд (UpdTicker)
 func (r *TickerRepository) UpdateTickerDb(tickers map[string]map[float64]int64) error {
 
 	for ticker, data := range tickers {
@@ -89,4 +94,31 @@ func (r *TickerRepository) UpdateTickerDb(tickers map[string]map[float64]int64) 
 		}
 	}
 	return nil
+}
+
+// Вытаскивает из запроса название тикера (UpdTicker)
+func BindTicker(c echo.Context) (string, error) {
+	var ticker models.TickerDb
+	if err := c.Bind(&ticker); err != nil {
+		return "", err
+	}
+	return ticker.Ticker, nil
+}
+
+// Вытаскиваем данные из url (GetTickerDiff)
+func ParamTicker(c echo.Context) (string, string, string, error) {
+	ticker := c.Param("ticker")
+	if ticker == "" {
+		return "", "", "", fmt.Errorf("incorrect request data (ticker)")
+	}
+	dateFrom := c.Param("date_from")
+	if dateFrom == "" {
+		fmt.Println("dateFrom")
+	}
+	dateTo := c.Param("date_to")
+	if dateTo == "" {
+		fmt.Println("dateFrom")
+	}
+	return ticker, dateFrom, dateTo, nil
+
 }

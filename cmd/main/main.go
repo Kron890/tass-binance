@@ -10,14 +10,14 @@ import (
 )
 
 func main() {
-	//представляет собой веб-сервер
+	// представляет собой веб-сервер
 	server := app.NewServer()
 
 	err := app.InitApp(server)
 	if err != nil {
+		log.Print("Initialization error: ", err)
 		panic(err)
 	}
-
 	log.Print("Server successfully init")
 
 	err = server.Start()

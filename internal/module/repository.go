@@ -5,6 +5,7 @@ type ModuleDatabase interface {
 	AddTickerDataBase(ticker string, price float64) error
 	GetTicker() ([]string, error)
 	UpdateTickerDb(map[string]map[float64]int64) error
+	GetHistoryTikcer(ticker string, dateFrom int64, dateTo int64) (float64, float64, error)
 }
 
 type ModuleExternalService interface {
