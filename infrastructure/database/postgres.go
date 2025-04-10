@@ -1,8 +1,9 @@
 package database
 
 import (
+	"fmt"
 	"log"
-	"os"
+	"tass-binance/config"
 	"tass-binance/internal/module/models"
 
 	"gorm.io/driver/postgres"
@@ -13,11 +14,8 @@ type DataBase struct {
 	DB *gorm.DB
 }
 
-func NewDbConnection() (*DataBase, error) {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "host=localhost user=user password=password dbname=mydatabase port=5432 sslmode=disable"
-	}
+func NewDbConnection(cfg config.Config) (*DataBase, error) {
+	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=%s port=%s sslmode=disable", cfg.PostgresConfig.User, cfg.PostgresConfig.Password, cfg.PostgresConfig.NameDb, cfg.PostgresConfig.Port)
 	connect, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err

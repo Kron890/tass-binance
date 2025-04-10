@@ -1,7 +1,8 @@
 package module
 
+import "tass-binance/internal/module/entity"
+
 type UseCase interface {
-	ProcessTicker(ticker string) error
-	ProcessTickerDiff(ticker string, dateFrom string, dateTo string) (float64, float64, error)
-	TickerUpdateProcess() error
+	AddTicker(ticker entity.TickerAddRequest) error
+	ProcessTickerDiff(ticker entity.TickerDiffRequest) (*entity.TickerDifferenceEntity, error)
 }

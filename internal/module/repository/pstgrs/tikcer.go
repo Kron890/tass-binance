@@ -30,7 +30,7 @@ func (r *TickerRepository) CheckTicker(ticker string) (bool, error) {
 }
 
 // Добавляет данные в бд (handler AddTicker)
-func (r *TickerRepository) AddTickerDataBase(ticker string, price float64) error {
+func (r *TickerRepository) AddTicker(ticker string, price float64) error {
 	newTicker := models.TickerDb{
 		Ticker: ticker,
 		Price:  price,
@@ -59,16 +59,9 @@ func (r *TickerRepository) GetHistoryTikcer(ticker string, dateFrom int64, dateT
 }
 
 // Получаем все тикеры в бд (UpdTicker)
-func (r *TickerRepository) GetTicker() ([]string, error) {
+func (r *TickerRepository) GetTicker() ([]models.TickerDb, error) { //изменил []string на []models.TickerDb
 	var tickers []models.TickerDb
-	var result []string
-	if err := r.db.DB.Select("ticker").Find(&tickers).Error; err != nil {
-		return nil, err
-	}
-	for _, t := range tickers {
-		result = append(result, t.Ticker)
-	}
-	return result, nil
+	return tickers, r.db.DB.Select("ticker").Find(&tickers).Error
 }
 
 // Обновляем тикеры полученные из бинанса в бд (UpdTicker)
@@ -87,8 +80,8 @@ func (r *TickerRepository) UpdateTickerDb(tickers map[string]map[float64]int64) 
 				Timestamp: timestamp}
 
 			if err := r.db.DB.Create(&tickerHistory).Error; err != nil {
-				log.Println("Error in data creation")
-				return err
+				log.Println(err)
+				return fmt.Errorf("can't create ticker history") //нет смысла выводить пользователю ошибку
 			}
 
 		}
@@ -103,22 +96,4 @@ func BindTicker(c echo.Context) (string, error) {
 		return "", err
 	}
 	return ticker.Ticker, nil
-}
-
-// Вытаскиваем данные из url (GetTickerDiff)
-func ParamTicker(c echo.Context) (string, string, string, error) {
-	ticker := c.Param("ticker")
-	if ticker == "" {
-		return "", "", "", fmt.Errorf("incorrect request data (ticker)")
-	}
-	dateFrom := c.Param("date_from")
-	if dateFrom == "" {
-		fmt.Println("dateFrom")
-	}
-	dateTo := c.Param("date_to")
-	if dateTo == "" {
-		fmt.Println("dateFrom")
-	}
-	return ticker, dateFrom, dateTo, nil
-
 }

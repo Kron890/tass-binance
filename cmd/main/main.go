@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"tass-binance/config"
 	"tass-binance/internal/app"
 )
 
@@ -13,7 +14,11 @@ func main() {
 	// представляет собой веб-сервер
 	server := app.NewServer()
 
-	err := app.InitApp(server)
+	configuration, err := config.GetConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = app.InitApp(server, configuration)
 	if err != nil {
 		log.Print("Initialization error: ", err)
 		panic(err)

@@ -10,26 +10,23 @@ import (
 )
 
 type Api struct {
-	client *binance.Client
+	client          *binance.Client
+	listPriceSerice *binance.ListPricesService
 }
-
-// type RegularApi struct {
-// 	client *binance.Client
-// }
 
 func NewApi() *Api {
 	client := binance.NewClient("", "")
 	return &Api{client: client}
 }
 
-// func RegularNewApi() *RegularApi {
-// 	client := binance.NewClient("", "")
-// 	return &RegularApi{client: client}
-// }
+func (a *Api) Init() {
+	priceService := a.client.NewListPricesService()
+	a.listPriceSerice = priceService
+}
 
 // получение прайса
 func (a *Api) GetPrice(symbol string) (float64, error) {
-	prices, err := a.client.NewListPricesService().Symbol(symbol).Do(context.Background())
+	prices, err := a.listPriceSerice.Symbol(symbol).Do(context.Background())
 	if err != nil {
 		return 0, err
 	}

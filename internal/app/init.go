@@ -1,6 +1,7 @@
 package app
 
 import (
+	"tass-binance/config"
 	"tass-binance/infrastructure/database"
 	"tass-binance/internal/module/deliv"
 	"tass-binance/internal/module/repository/extrenal_api"
@@ -8,10 +9,10 @@ import (
 	"tass-binance/internal/module/usecase"
 )
 
-func InitApp(server *Server) error {
+func InitApp(server *Server, config config.Config) error {
 	//подключения к бд
 
-	dbConnect, err := database.NewDbConnection()
+	dbConnect, err := database.NewDbConnection(config)
 	if err != nil {
 		return err
 	}
@@ -20,18 +21,16 @@ func InitApp(server *Server) error {
 	repo := pstgrs.NewRepo(dbConnect)
 	// Инициализация клиента для взаимодействия с внешним API
 	extrenalAPI := extrenal_api.NewApi()
-	extrenalRegularUpdAPI := extrenal_api.NewApi()
+	extrenalAPI.Init()
 
 	// Создание слоя бизнес-логики (usecase) и передача в него зависимостей
 	tickerUseCase := usecase.NewUseCase(repo, extrenalAPI)
-	tickerRegularUseCase := usecase.NewUseCase(repo, extrenalRegularUpdAPI)
 
 	// Инициализация обработчиков HTTP-запросов (deliv) и передача в них usecase
 	handler := deliv.NewHandler(tickerUseCase)
-	updateHandler := deliv.NewHandler(tickerRegularUseCase)
+
 	// Регистрация маршрутов в сервере
 	deliv.MapRoutes(server.echo, *handler)
-	deliv.StartUpd(server.echo, *updateHandler)
 
 	return nil
 }

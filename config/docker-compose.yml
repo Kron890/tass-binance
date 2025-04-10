@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: mydatabase
+      POSTGRES_PORT: "5432"
     ports:
       - "5432:5432"
     volumes:
@@ -26,10 +27,14 @@ services:
     depends_on:
       - postgres
 
-  app:  # Это приложение, которое использует DATABASE_URL
+  app:
     build: .
+    container_name: go_app
     environment:
-      DATABASE_URL: postgres://user:password@postgres:5432/mydatabase  # Строка подключения
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+      POSTGRES_PORT: "5432"
     depends_on:
       - postgres
 
