@@ -2,34 +2,35 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"tass-binance/config"
 	"tass-binance/internal/app"
+	"tass-binance/pkg/logger"
 )
 
 func main() {
 	// представляет собой веб-сервер
+	l := logger.NewLogger()
 	server := app.NewServer()
 
 	configuration, err := config.GetConfig()
 	if err != nil {
-		log.Fatal(err)
+		l.Errorf("Failed to get config: %s", err.Error())
+		os.Exit(1)
 	}
 	err = app.InitApp(server, configuration)
 	if err != nil {
-		log.Print("Initialization error: ", err)
-		panic(err)
+		l.Errorf("Initialization error: %s", err)
+		os.Exit(1)
 	}
-	log.Print("Server successfully init")
+	l.Infof("Server successfully init")
 
 	err = server.Start()
 	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server two closed\n")
+		l.Errorf("server two closed\n")
 	} else if err != nil {
-		fmt.Printf("server error: %v\n", err)
+		l.Errorf("server error: %v\n", err)
 		os.Exit(1)
 	}
 }

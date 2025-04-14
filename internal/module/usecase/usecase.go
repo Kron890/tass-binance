@@ -6,6 +6,7 @@ import (
 	"tass-binance/internal/module/entity"
 	"tass-binance/internal/module/models"
 	"tass-binance/internal/module/usecase/helpers"
+	"tass-binance/pkg/logger"
 	"tass-binance/pkg/time_convert"
 	"time"
 
@@ -28,16 +29,21 @@ func NewUseCase(dbRepo module.ModuleDatabase, externalApiRepo module.ModuleExter
 
 // processTicker
 func (u *UseCase) AddTicker(ticker entity.TickerAddRequest) error {
+	l := logger.NewLogger()
+
 	exists, err := u.dbRepo.CheckTicker(ticker.Name)
 	if err != nil {
+		l.Errorf("CheckTicker: %s", err)
 		return err
 	}
 	if exists {
+		l.Errorf("CheckTicke: the ticker is already in the database")
 		return fmt.Errorf("the ticker is already in the database")
 	}
 
 	price, err := u.externalApiRepo.GetPrice(ticker.Name)
 	if err != nil {
+		l.Infof("GetPricee: %s", err)
 		return err
 	}
 	return u.dbRepo.AddTicker(ticker.Name, price)
