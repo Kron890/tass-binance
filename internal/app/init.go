@@ -10,9 +10,8 @@ import (
 	"tass-binance/pkg/logger"
 )
 
-func InitApp(server *Server, config config.Config) error {
+func InitApp(server *Server, config config.Config, l *logger.Logger) error {
 	//подключения к бд
-	l := logger.NewLogger()
 
 	dbConnect, err := database.NewDbConnection(config)
 	if err != nil {
@@ -28,7 +27,7 @@ func InitApp(server *Server, config config.Config) error {
 	l.Infof("successful connection to the database")
 
 	// Создание слоя бизнес-логики (usecase) и передача в него зависимостей
-	tickerUseCase := usecase.NewUseCase(repo, extrenalAPI)
+	tickerUseCase := usecase.NewUseCase(repo, extrenalAPI, l)
 
 	// Инициализация обработчиков HTTP-запросов (deliv) и передача в них usecase
 	handler := deliv.NewHandler(tickerUseCase)

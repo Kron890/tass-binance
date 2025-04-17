@@ -1,6 +1,8 @@
 package module
 
-import "tass-binance/internal/module/entity"
+import (
+	"tass-binance/internal/module/entity"
+)
 
 type UseCase interface {
 	AddTicker(ticker entity.TickerAddRequest) error

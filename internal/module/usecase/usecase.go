@@ -9,41 +9,39 @@ import (
 	"tass-binance/pkg/logger"
 	"tass-binance/pkg/time_convert"
 	"time"
-
-	"github.com/labstack/gommon/log"
 )
 
 type UseCase struct {
 	dbRepo          module.ModuleDatabase
 	externalApiRepo module.ModuleExternalService
+	l               *logger.Logger
 }
 
-func NewUseCase(dbRepo module.ModuleDatabase, externalApiRepo module.ModuleExternalService) *UseCase {
+func NewUseCase(dbRepo module.ModuleDatabase, externalApiRepo module.ModuleExternalService, l *logger.Logger) *UseCase {
 
 	uc := &UseCase{
 		dbRepo:          dbRepo,
-		externalApiRepo: externalApiRepo}
+		externalApiRepo: externalApiRepo,
+		l:               l}
 	go uc.tickerUpdateRoutine()
 	return uc
 }
 
 // processTicker
 func (u *UseCase) AddTicker(ticker entity.TickerAddRequest) error {
-	l := logger.NewLogger()
-
 	exists, err := u.dbRepo.CheckTicker(ticker.Name)
 	if err != nil {
-		l.Errorf("CheckTicker: %s", err)
+		u.l.Errorf("CheckTicker: %s", err)
 		return err
 	}
 	if exists {
-		l.Errorf("CheckTicke: the ticker is already in the database")
+		u.l.Errorf("CheckTicke: the ticker is already in the database")
 		return fmt.Errorf("the ticker is already in the database")
 	}
 
 	price, err := u.externalApiRepo.GetPrice(ticker.Name)
 	if err != nil {
-		l.Infof("GetPricee: %s", err)
+		u.l.Infof("GetPricee: %s", err)
 		return err
 	}
 	return u.dbRepo.AddTicker(ticker.Name, price)
@@ -55,6 +53,7 @@ func (u *UseCase) ProcessTickerDiff(ticker entity.TickerDiffRequest) (*entity.Ti
 
 	timeFrom, timeTo, err := time_convert.ConvertTime(ticker.DateFrom, ticker.DateTo)
 	if err != nil {
+		u.l.Errorf("convertTime: %s", err.Error())
 		return &entity.TickerDifferenceEntity{}, err
 	}
 
@@ -67,6 +66,7 @@ func (u *UseCase) ProcessTickerDiff(ticker entity.TickerDiffRequest) (*entity.Ti
 		Price:      endPrice,
 		Difference: fmt.Sprintf("%.3f%%", percDiff),
 	}
+	u.l.Infof("processTikcerDiff: successfully")
 	return difference, nil
 }
 
@@ -78,7 +78,7 @@ func (u *UseCase) tickerUpdateRoutine() error {
 		case <-tick.C:
 			err := u.tickerUpdateProcess()
 			if err != nil {
-				log.Warnf("ticker update error: %s", err)
+				u.l.WarnF("ticker update error: %s", err)
 			}
 		}
 	}
@@ -88,6 +88,7 @@ func (u *UseCase) tickerUpdateProcess() error {
 	var ticker []models.TickerDb
 	ticker, err := u.dbRepo.GetTicker()
 	if err != nil {
+		u.l.Errorf("tickerUpdateProcess, %s", err.Error())
 		return err
 	}
 	tickers := make([]string, 0, len(ticker))
@@ -97,6 +98,7 @@ func (u *UseCase) tickerUpdateProcess() error {
 
 	tickersBinance, err := u.externalApiRepo.GetRegularPrice(tickers)
 	if err != nil {
+		u.l.Errorf("getRegularPrice %s", err.Error())
 		return err
 	}
 

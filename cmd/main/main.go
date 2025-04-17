@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"os"
 	"tass-binance/config"
 	"tass-binance/internal/app"
 	"tass-binance/pkg/logger"
@@ -17,12 +16,12 @@ func main() {
 	configuration, err := config.GetConfig()
 	if err != nil {
 		l.Errorf("Failed to get config: %s", err.Error())
-		os.Exit(1)
+		panic(err)
 	}
-	err = app.InitApp(server, configuration)
+	err = app.InitApp(server, configuration, l)
 	if err != nil {
 		l.Errorf("Initialization error: %s", err)
-		os.Exit(1)
+		panic(err)
 	}
 	l.Infof("Server successfully init")
 
@@ -31,6 +30,6 @@ func main() {
 		l.Errorf("server two closed\n")
 	} else if err != nil {
 		l.Errorf("server error: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 }
